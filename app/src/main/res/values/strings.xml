@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ScreenMirrorMobileApp</string>
+    <string name="deviceName">device name</string>
+    <string name="macAddress">MAC address</string>
 </resources>
