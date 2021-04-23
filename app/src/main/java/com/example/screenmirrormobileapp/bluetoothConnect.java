@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,11 +16,14 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
+
+
 
 public class bluetoothConnect extends AppCompatActivity {
 
@@ -56,7 +60,11 @@ public class bluetoothConnect extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ConnectedThread connectedThread = new ConnectedThread(sock);
-                connectedThread.write(bluetooth_message.getBytes());
+                try {
+                    connectedThread.write();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -207,17 +215,18 @@ public class bluetoothConnect extends AppCompatActivity {
         }
 
         // Fonction permettant d'envoyer des données
-        public void write(byte[] bytes) {
-            while (1 == 1) {
+        public void write() throws InterruptedException {
+            //while (1 == 1) {
                 if (btOutStream != null) {
 
 
                     try {
-                        btOutStream.write(bytes);
+                        btOutStream.write(Screenshot());
                     } catch (IOException e) {
                     }
                 }
-            }
+                sleep(100);
+            //}
         }
 
         // Fonction permettant de fermer la connexion
@@ -226,5 +235,17 @@ public class bluetoothConnect extends AppCompatActivity {
                 btSocket.close();
             } catch (IOException e) { }
         }
+    }
+
+    private byte[] Screenshot() {
+        View v1 = getWindow().getDecorView().getRootView();
+        v1.setDrawingCacheEnabled(true);
+        Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
+        v1.setDrawingCacheEnabled(false);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+
+        return out.toByteArray();
     }
 }
