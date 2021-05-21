@@ -53,7 +53,7 @@ public class bluetoothConnect extends AppCompatActivity {
 
 
 
-    String bluetooth_message="Salut ca va ?";
+
 
 
 
@@ -68,31 +68,6 @@ public class bluetoothConnect extends AppCompatActivity {
 
     }
 
-  /*  @RequiresApi(api = Build.VERSION_CODES.R)
-    public void writing_data(BluetoothSocket sock) {
-        ConnectedThread connectedThread = new ConnectedThread(sock);
-        //Thread thread = new Thread(connectedThread.write());
-        SendData sendData = new SendData();
-        sendData.start();
-        //connectedThread.write();
-    } */
-
-  /*  @SuppressLint("WrongConstant")
-    void initImageRead(MediaProjection mediaProjection) {
-        if (mediaProjection == null) {
-
-            return;
-        }
-        int width = 1080;
-        int height = 1920;
-        int dpi = 400;
-        ImageReader mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2);
-
-        mediaProjection.createVirtualDisplay("ScreenCapture",
-                width, height, dpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                mImageReader.getSurface(), null, null);
-    } */
 
 
     public void stop_data(BluetoothSocket sock) {
@@ -112,7 +87,7 @@ public class bluetoothConnect extends AppCompatActivity {
         });
     }
 
-    public void send_data(byte[] bytes, BluetoothSocket sock) {
+    public void send_data(BluetoothSocket sock) {
         final Button send_data = (Button) findViewById(R.id.send1);
 
         send_data.setOnClickListener(new View.OnClickListener() {
@@ -122,7 +97,7 @@ public class bluetoothConnect extends AppCompatActivity {
             public void onClick(View v) {
 
                 ConnectedThread connectedThread = new ConnectedThread(sock);
-                //Thread thread = new Thread(connectedThread.write());
+
                 SendData sendData = new SendData();
                 sendData.start();
 
@@ -213,7 +188,7 @@ public class bluetoothConnect extends AppCompatActivity {
             } catch (IOException e) { }
             btSocket = tmp;
 
-            send_data(bluetooth_message.getBytes(), btSocket);
+            send_data(btSocket);
             stop_data(btSocket);
         }
 
@@ -293,14 +268,15 @@ public class bluetoothConnect extends AppCompatActivity {
 
 
                     try {
-                        View v1 = getWindow().getDecorView().getRootView();
+                        /*View v1 = getWindow().getDecorView().getRootView();
                         v1.setDrawingCacheEnabled(true);
                         Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
                         v1.setDrawingCacheEnabled(false);
 
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
                         bitmap.compress(Bitmap.CompressFormat.PNG, 1, out);
-                        byte[] im = out.toByteArray();
+                        byte[] im = out.toByteArray();*/
+                        byte[] im = Screenshot();
                         int fragment = 10000000;
                         byte[] start = "START".getBytes();
                         byte[] stop = "STOP".getBytes();
@@ -312,14 +288,9 @@ public class bluetoothConnect extends AppCompatActivity {
                         buff.put(stop);
 
                         byte[] image = buff.array();
-                        /*for (int i = 0; i*fragment < image.length; i++) {
-                            if (i*fragment + fragment > image.length){
 
-                            }
-                        }*/
                         ConnectedThread.btOutStream.write(image);
-                        //mMediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-                        //mMediaProjection = mMediaProjectionManager.getMediaProjection(Activity.RESULT_OK, (Intent) bundle.getParcelable("data"));
+
                     } catch (IOException e) {
                     }
                     byte[] buffer = new byte[1000];
@@ -330,41 +301,35 @@ public class bluetoothConnect extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
-                        //int confirmation = btInStream.read(buffer);
-                        //Log.d("ADebugTag", "Value: " + Integer.toString(confirmation));
                         Log.d("ADebugTag", "Value: not yet");
 
-                        //if (confirmation != 0) {
-                        //    Toast.makeText(getApplicationContext(), confirmation, Toast.LENGTH_SHORT).show();
-                        //}
 
                     }
 
                 }
-                //sleep(1000);
+
             }
         }
 
         // Fonction permettant de fermer la connexion
-        public void cancel() {
-            try {
-                ConnectedThread.btSocket.close();
-            } catch (IOException e) { }
+
+
+        private byte[] Screenshot() {
+            View v1 = getWindow().getDecorView().getRootView();
+
+            v1.setDrawingCacheEnabled(true);
+            Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
+            v1.setDrawingCacheEnabled(false);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 1, out);
+
+
+            return out.toByteArray();
         }
+
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.R)
-    private byte[] Screenshot() {
-        View v1 = getWindow().getDecorView().getRootView();
-
-        v1.setDrawingCacheEnabled(true);
-        Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
-        v1.setDrawingCacheEnabled(false);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 1, out);
 
 
-        return out.toByteArray();
-    }
 }
