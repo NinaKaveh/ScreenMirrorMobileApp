@@ -24,6 +24,12 @@
         android:id="@+id/send1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Send Data" />
+        android:text="Commencer le Partage d'écran" />
+
+    <Button
+        android:id="@+id/cancel1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Arreter le Partage d'écran" />
 
 </LinearLayout>
