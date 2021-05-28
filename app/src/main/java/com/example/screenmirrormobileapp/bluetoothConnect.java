@@ -1,26 +1,17 @@
 package com.example.screenmirrormobileapp;
 
-import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.PixelFormat;
-import android.graphics.Rect;
-import android.graphics.SurfaceTexture;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
-import android.media.ImageReader;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -31,7 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -52,12 +44,6 @@ public class bluetoothConnect extends AppCompatActivity {
     public static final UUID Bluetooth_UUID = UUID.fromString("52be30ba-5471-420c-b666-c42069fd4578");
 
 
-
-
-
-
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,10 +51,7 @@ public class bluetoothConnect extends AppCompatActivity {
         init_graph();
         init_bluetooth();
         init_connection();
-
     }
-
-
 
     public void stop_data(BluetoothSocket sock) {
         final Button stop_data = (Button) findViewById(R.id.cancel1);
@@ -95,24 +78,19 @@ public class bluetoothConnect extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.R)
             @Override
             public void onClick(View v) {
-
                 ConnectedThread connectedThread = new ConnectedThread(sock);
-
                 SendData sendData = new SendData();
                 sendData.start();
-
             }
         });
 
     }
     
 
-    public void init_connection()
-    {
+    public void init_connection(){
         appareils_associe.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Object[] objects = set_pairedDevices.toArray();
                 BluetoothDevice device = (BluetoothDevice) objects[position];
 
@@ -128,43 +106,30 @@ public class bluetoothConnect extends AppCompatActivity {
     
 
 
-    public void init_graph()
-    {
-
+    public void init_graph() {
         appareils_associe = (ListView)findViewById(R.id.appareils_associe);
         liste_appareils_associe = new ArrayAdapter(getApplicationContext(),R.layout.support_simple_spinner_dropdown_item);
         appareils_associe.setAdapter(liste_appareils_associe);
     }
 
-    public void init_bluetooth()
-    {
+    public void init_bluetooth() {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
-
             Toast.makeText(getApplicationContext(),"Votre appareil n'a pas de Bluetooth",Toast.LENGTH_SHORT).show();
-
             finish();
         }
-
-
-
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             set_pairedDevices = bluetoothAdapter.getBondedDevices();
-
-        }
-
-        else {
+        } else {
             set_pairedDevices = bluetoothAdapter.getBondedDevices();
-
             if (set_pairedDevices.size() > 0) {
-
                 for (BluetoothDevice device : set_pairedDevices) {
                     String deviceName = device.getName();
                     String deviceHardwareAddress = device.getAddress();
 
-                    liste_appareils_associe.add(device.getName() + "\n" + device.getAddress());
+                    liste_appareils_associe.add(deviceName + "\n" + deviceHardwareAddress);
                 }
             }
         }
@@ -173,7 +138,7 @@ public class bluetoothConnect extends AppCompatActivity {
 
 
 
-    private class ConnectThread extends Thread {
+    public class ConnectThread extends Thread {
         private final BluetoothSocket btSocket;
         private final BluetoothDevice btDevice;
 
@@ -182,20 +147,17 @@ public class bluetoothConnect extends AppCompatActivity {
             BluetoothSocket tmp = null;
             btDevice = device;
 
-            // Connection de la socket Bluetooth avec l'appareil
+            // Connexion de la socket Bluetooth avec l'appareil
             try {
                 tmp = device.createRfcommSocketToServiceRecord(Bluetooth_UUID);
             } catch (IOException e) { }
             btSocket = tmp;
-
             send_data(btSocket);
             stop_data(btSocket);
         }
 
         public void run() {
-
             bluetoothAdapter.cancelDiscovery();
-
             try {
 
                 btSocket.connect();
@@ -206,7 +168,6 @@ public class bluetoothConnect extends AppCompatActivity {
                 } catch (IOException closeException) { }
                 return;
             }
-
         }
 
 
@@ -216,7 +177,7 @@ public class bluetoothConnect extends AppCompatActivity {
             } catch (IOException e) { }
         }
     }
-    private static class ConnectedThread extends Thread {
+    public static class ConnectedThread extends Thread {
 
         private static BluetoothSocket btSocket;
         private static InputStream btInStream;
@@ -226,14 +187,10 @@ public class bluetoothConnect extends AppCompatActivity {
             btSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
-
-
             try {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
-            } catch (IOException e) {
-            }
-
+            } catch (IOException e) { }
             btInStream = tmpIn;
             btOutStream = tmpOut;
         }
@@ -242,13 +199,9 @@ public class bluetoothConnect extends AppCompatActivity {
             byte[] buffer = new byte[2];
             int bytes;
 
-
             while (true) {
                 try {
-
                     bytes = btInStream.read(buffer);
-
-
                 } catch (IOException e) {
                     break;
                 }
@@ -257,26 +210,21 @@ public class bluetoothConnect extends AppCompatActivity {
 
     }
 
-    private class SendData extends Thread {
+    public class SendData extends Thread {
 
         // Fonction permettant d'envoyer des données
         @RequiresApi(api = Build.VERSION_CODES.R)
         public void run() {
-            while (1 == 1) {
+            while (true) {
                 //sleep(10000);
                 if (ConnectedThread.btOutStream != null) {
 
 
                     try {
-                        /*View v1 = getWindow().getDecorView().getRootView();
-                        v1.setDrawingCacheEnabled(true);
-                        Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
-                        v1.setDrawingCacheEnabled(false);
-
-                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 1, out);
-                        byte[] im = out.toByteArray();*/
-                        byte[] im = Screenshot();
+                        PhoneScreen phoneScreen = new PhoneScreen();
+                        phoneScreen.createImage();
+                        File file = new File(getFilesDir(),"/screen.jpg");
+                        byte[] im = convertFileIntoByteArray(file);
                         int fragment = 10000000;
                         byte[] start = "START".getBytes();
                         byte[] stop = "STOP".getBytes();
@@ -303,33 +251,25 @@ public class bluetoothConnect extends AppCompatActivity {
 
                         Log.d("ADebugTag", "Value: not yet");
 
-
                     }
-
                 }
-
             }
         }
 
-        // Fonction permettant de fermer la connexion
-
-
-        private byte[] Screenshot() {
-            View v1 = getWindow().getDecorView().getRootView();
-
-            v1.setDrawingCacheEnabled(true);
-            Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
-            v1.setDrawingCacheEnabled(false);
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 1, out);
-
-
-            return out.toByteArray();
+        private byte[] convertFileIntoByteArray(File file){
+            FileInputStream inputStream = null;
+            byte[] byteArray = new byte[(int) file.length()];
+            try{
+                inputStream = new FileInputStream(file);
+                inputStream.read(byteArray);
+                inputStream.close();
+            }catch(IOException ioExp){
+                ioExp.printStackTrace();
+            }
+            return byteArray;
         }
 
     }
-
 
 
 }
