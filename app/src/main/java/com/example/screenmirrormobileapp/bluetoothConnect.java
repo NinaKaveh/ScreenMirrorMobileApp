@@ -7,6 +7,8 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -43,16 +45,38 @@ public class bluetoothConnect extends AppCompatActivity {
     BluetoothAdapter bluetoothAdapter;
     public static final UUID Bluetooth_UUID = UUID.fromString("52be30ba-5471-420c-b666-c42069fd4578");
 
+    public static MediaProjection mediaProjection;
+    public MediaProjectionManager mediaProjectionManager;
+    public static WindowManager windowManager;
+    public Intent intent;
+    public int REQUEST_CODE = 999;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mediaProjectionManager = (MediaProjectionManager) getApplicationContext().getSystemService(MEDIA_PROJECTION_SERVICE);
+        intent = mediaProjectionManager.createScreenCaptureIntent();
+        startActivityForResult(intent, REQUEST_CODE);
+        windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+
+
         setContentView(R.layout.bluetooth);
         init_graph();
         init_bluetooth();
         init_connection();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, intent);
+                System.out.println("Printing mediaprojection:  " + mediaProjection);    // toujours null
+            }
+        }
+    }
     public void stop_data(BluetoothSocket sock) {
         final Button stop_data = (Button) findViewById(R.id.cancel1);
 
@@ -257,14 +281,14 @@ public class bluetoothConnect extends AppCompatActivity {
         }
 
         private byte[] convertFileIntoByteArray(File file){
-            FileInputStream inputStream = null;
+            FileInputStream inputStream;
             byte[] byteArray = new byte[(int) file.length()];
             try{
                 inputStream = new FileInputStream(file);
                 inputStream.read(byteArray);
                 inputStream.close();
-            }catch(IOException ioExp){
-                ioExp.printStackTrace();
+            }catch(IOException e){
+                e.printStackTrace();
             }
             return byteArray;
         }

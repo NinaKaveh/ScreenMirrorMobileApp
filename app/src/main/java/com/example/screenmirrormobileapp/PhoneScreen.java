@@ -5,14 +5,18 @@ import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,13 +24,13 @@ import java.nio.Buffer;
 
 public class PhoneScreen extends bluetoothConnect {
 
-    public MediaProjection mediaProjection;
     ImageReader imageReader;
     Handler handler = new Handler();
+    VirtualDisplay virtualDisplay;
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     public void createImage() {
         // Get the window size (width, height, metrics and density)
-        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         Display display = windowManager.getDefaultDisplay();
         DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
@@ -37,17 +41,18 @@ public class PhoneScreen extends bluetoothConnect {
         int density = metrics.densityDpi;
 
         // create a reader for image
-        imageReader = ImageReader.newInstance(size.x, size.y, ImageFormat.JPEG, 2);
+        imageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 2);
 
         int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
 
         // creation of the capture
-        mediaProjection.createVirtualDisplay("screen capture", width, height, density, flags, imageReader.getSurface(), null, handler);
+        virtualDisplay = mediaProjection.createVirtualDisplay("screen capture", width, height, density, flags, imageReader.getSurface(), null, handler);
 
+        // create bitmap (create a file screen.jpg)
         imageReader.setOnImageAvailableListener(reader -> {
-            Image image = null;
+            Image image;
             FileOutputStream outputStream = null;
-            Bitmap bitmap = null;
+            Bitmap bitmap;
 
             try {
                 image = imageReader.acquireLatestImage();
@@ -68,12 +73,6 @@ public class PhoneScreen extends bluetoothConnect {
                         ioe.printStackTrace();
                     }
                 }
-
-                if (bitmap!=null)
-                    bitmap.recycle();
-
-                if (image!=null)
-                    image.close();
             }
         }, handler);
     }
